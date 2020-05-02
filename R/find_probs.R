@@ -11,6 +11,10 @@
 
 find_probs <- function(effect_size, num_levels, p1, p2) {
   if(missing(p2) && !missing(p1)) {
+    if(num_levels != length(p1)) {
+      num_levels <- length(p1)
+      warning("number of levels reset to length of p1")
+    }
     p2 <- runif(1:num_levels, 0, 1)
     dat <- list(num_levels = num_levels,
                       goal = effect_size,
@@ -35,7 +39,10 @@ find_probs <- function(effect_size, num_levels, p1, p2) {
       warning("Effect size not possible with provided p1")
     }
    }
-
+  if(missing(num_levels) && missing(p1) && missing(p1)) {
+    num_levels <- 5
+    warning("Number of levels set to 5")
+  }
   if(missing(p1)) {
     p1 <- runif(1:num_levels, 0, 1)
   }
