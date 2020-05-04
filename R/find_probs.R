@@ -8,6 +8,7 @@
 #' @examples
 #' find_probs(.6, 3)
 #' find_probs(.6, 3, rep(1, 3))
+#' @export
 
 find_probs <- function(effect_size,
                        num_levels,

@@ -46,6 +46,7 @@ estimate_power <- function(sample_size,
       return(2 * min(pnorm(z), pnorm(z, lower.tail = FALSE)))
       # suppressWarnings(wilcox.test(d1, d2))$p.value
     })
-    return(mean(s < alpha))
   }
+  s[is.na(s)] <- 1
+  return(mean(s < alpha))
 }
