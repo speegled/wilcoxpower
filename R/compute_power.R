@@ -42,6 +42,16 @@ power_wilcox_test <- function(sample_size,
   if(missing(effect_size) && !missing(p1) && !missing(p2)) {
     effect_size <- compute_effsize(p1, p2)
   }
+  if(missing(num_levels) && !missing(p1) && missing(p2)) {
+    num_levels <- length(p1)
+  }
+  if(missing(num_levels) && !missing(p1) && !missing(p2)) {
+    if(length(p1) == length(p2)) {
+      num_levels <- length(p1)
+    } else{
+      stop("length of p1 and p2 must be equal")
+    }
+  }
   probs <- find_probs(effect_size, num_levels, p1, p2)
     levs <- length(probs$p1)
     dsamp1 <- function(N) {

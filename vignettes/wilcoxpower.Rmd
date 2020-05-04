@@ -1,0 +1,100 @@
+---
+title: "Power computations for wilcox.test"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{power computations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r include = FALSE}
+library(wilcoxpower)
+knitr::opts_chunk$set(fig.dpi = 96, 
+                      collapse = TRUE)
+```
+
+This vignette explains how to use the main function of this package, `power_wilcox_test`. Currently, the power computation is only implemented in the case that there are **two populations**. The main goal is to create a tool to aid in power computation when the data in question is ordinal with a relatively small number of levels.
+
+## Simple Case
+
+Suppose you want to sample from two populations and test $P(X > Y) = P(X < Y)$ versus the alternative $P(X > Y) \not= P(X < Y)$ using `wilcox.test`. A common question is: if I take a sample of size $N$ is that enough data? And the answer is: it depends. Let's look at an example.
+
+Suppose that you are taking a survey with a Likert style response that contains 5 levels, and we assume that the levels are increasing from 1 to 5. In order to estimate the sample size, we need to decide on a proposed alternative distribution of the two populations. In `wilcox_power_test`, we need to know several things: 
+
+1. The sample size.
+
+2. the **effect size** that we wish to detect. The effect size is related to Vargha and Delaney's $A$, and is defined to be 
+\[
+{\text {effect_size}} = P(X > Y) + \frac 12 P(X == Y).
+\]
+If there were no ties, it would just be the probability that $X > Y$. 
+
+3. The $\alpha$ level of the test we wish to run.
+
+Unfortunately, the power of `wilcox.test` depends on more than just the sample size, effect size and the $\alpha$ level of thetest, unlike the power of `t.test`. We also need to make some distributional assumptions. That's where `power_wilcox_test` comes in!
+
+If you don't have an idea of what the distributions of the two populations under the alternative hypothesis would look like, you can run:
+
+```{r}
+wilcoxpower::power_wilcox_test(sample_size = 30, 
+                               effect_size = .7, 
+                               num_levels = 5)
+```
+
+This gives you four estimates of power, based on 4 different distributional assumptions. Here are the 4 distributional assumptions:
+
+1. `estimated_power`: this is the power for two *randomly selected* distribution with the effect size provided. It can vary greatly from run to run of this function, but is typically in between the balanced and unbalanced versions. Alternatively (and preferably), you can provide values for the distributions of the two populations, and `estimated_power` will be the estimated power for those distributions. See below.
+2. `balanced_power`: this is the power estimate for two distributions that are relatively flat while achieving the desired effect size. This is often a **conservative** estimate of power.
+3. `unbalanced_power`: this is the power estimate for two distributions that are spikey while achieving the desired effect size. This is often am **optimistic** estimate of power.
+4. `noether_power`: this is from the formula due to Noehter (1987), which was derived for two **normal** populations, one of which is a translate of the other. It is included as an additional reference point.
+
+If we want to see what the probability distributions were in each of the four runs, we can set `power_only = FALSE`. The results will differ (except for `noether_estimate`) because there are simulations and randomness involved. The main purpose would be so that you can see what I mean when I say the populations are "flat" or "spikey".
+
+```{r}
+power_comp <- wilcoxpower::power_wilcox_test(sample_size = 30, 
+                               effect_size = .7, 
+                               num_levels = 5, 
+                               power_only = FALSE)
+power_comp
+```
+
+## If you have an alternative distribution
+
+If you have an alternative distribution in mind, then you can get a power estimate for that alternative distribution. `power_wilcox_test` will also compute the effect size for that distribution and provide the other three estimates (balanced, unbalanced and noether) of power for that effect size. In this case, I recommend returning the full results so that you can see the effect size.
+
+```{r}
+power_wilcox_test(sample_size = 30, 
+                  p1 = c(1,1,1), 
+                  p2 = c(3,1,1), 
+                  power_only = FALSE)
+```
+
+## Other options
+
+1. If you provide effect size, p1 and p2, then p1 and p2 are used as starting points for finding distributions with the desired effect size. 
+2. If you provide effect size and p1, then we try to find p2 so that p1 and p2 have effect size given. If impossible, a warning is thrown and p1 is also modified.
+
+```{r}
+power_wilcox_test(sample_size = 30, 
+                  effect_size = .7, 
+                  p1 = c(1,1,1), 
+                  p2 = c(5,1,1),
+                  power_only = F) #changes p1 and p2 to get effect size
+```
+
+```{r}
+power_wilcox_test(sample_size = 30, 
+                  effect_size = .7, 
+                  p1 = c(1,1,1), 
+                  power_only = F) #finds p2 to get effect size with p1
+```
+
+```{r}
+# this effect size isn't possible with p1, so p1 is also changed
+power_wilcox_test(sample_size = 30, 
+                  effect_size = .77, 
+                  p1 = c(1,1), 
+                  power_only = F) 
+
+```
+
