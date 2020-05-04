@@ -8,5 +8,6 @@ Description: This package is a helper package for estimating power when desiging
     Currently only implemented for two sample.
 License: TBD
 Encoding: UTF-8
+VignetteBuilder: knitr
 LazyData: true
 RoxygenNote: 7.1.0
